@@ -419,12 +419,9 @@ function MorningRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions
 function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: boolean }) {
   const [rpe, setRpe] = useState(7)
   const [performance, setPerformance] = useState(7)
-  const [movements, setMovements] = useState<string[]>([])
-  const [wodResult, setWodResult] = useState('')
   const [feelings, setFeelings] = useState('')
   const [improvements, setImprovements] = useState('')
   const [notes, setNotes] = useState('')
-  const movementOpts = ['Snatch', 'Clean & Jerk', 'Pull-up', 'Muscle-up', 'HSPU', 'Deadlift', 'Back Squat', 'Front Squat', 'Thruster', 'Box Jump', 'Double Under', 'Row', 'Bike', 'Ski Erg', 'Run', 'Burpee', 'KB Swing', 'Wall Ball']
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
@@ -434,12 +431,10 @@ function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: bool
       </div>
       <Slider label="RPE (effort perçu)" value={rpe} onChange={setRpe} color='#f87171' emoji="🔥" />
       <Slider label="Performance ressentie" value={performance} onChange={setPerformance} color='#3dd68c' emoji="📈" />
-      <TextArea label="Résultat du WOD" value={wodResult} onChange={setWodResult} placeholder="Temps, rounds, charges, scores..." emoji="🏆" />
-      <Chips label="Mouvements travaillés" options={movementOpts} selected={movements} onToggle={m => setMovements(prev => prev.includes(m) ? prev.filter(x => x !== m) : [...prev, m])} color='#3dd68c' />
       <TextArea label="Ressenti pendant la séance" value={feelings} onChange={setFeelings} placeholder="Énergie, cardio, force, mental..." emoji="💭" />
       <TextArea label="Points à améliorer" value={improvements} onChange={setImprovements} placeholder="Technique, stratégie, mental..." emoji="🔧" />
       <TextArea label="Notes libres" value={notes} onChange={setNotes} placeholder="Observations, PR, contexte..." emoji="📝" />
-      <button onClick={() => onSave({ rpe, performance, wod_result: wodResult, movements: movements.join(', '), feelings, improvements, notes })} disabled={saving}
+      <button onClick={() => onSave({ rpe, performance, feelings, improvements, notes })
         style={{ width: '100%', padding: 16, background: '#3dd68c', border: 'none', borderRadius: 14, color: '#0a0a0f', fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: 2, cursor: 'pointer', opacity: saving ? 0.7 : 1 }}>
         {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER MA SÉANCE ✓'}
       </button>
