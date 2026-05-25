@@ -558,8 +558,10 @@ function AthleteContent() {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.replace('/auth'); return }
-    const { data: inserted } = await supabase.from('entries').insert({ user_id: user.id, type: tab, data }).select().single()
-    if (inserted) setAllEntries(prev => [inserted, ...prev])
+    await supabase.from('entries').insert({ user_id: user.id, type: tab, data })
+const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
+const { data: entries } = await supabase.from('entries').select('*').eq('user_id', user.id).gte('created_at', cutoff.toISOString()).order('created_at', { ascending: false })
+if (entries) setAllEntries(entries)
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
   }, [tab])
 
