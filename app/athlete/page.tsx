@@ -531,6 +531,15 @@ function AthleteContent() {
   const [allEntries, setAllEntries] = useState<Entry[]>([])
   const supabase = createClient()
 
+  const loadEntries = useCallback(async (uid: string) => {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
+    const { data } = await supabase
+      .from('entries').select('*').eq('user_id', uid)
+      .gte('created_at', cutoff.toISOString())
+      .order('created_at', { ascending: false })
+    if (data) setAllEntries(data)
+  }, [])
+
   useEffect(() => {
     const paramTab = searchParams.get('tab') as Tab | null
     if (paramTab && ['night','morning','journal','semaine','stats'].includes(paramTab)) setTab(paramTab)
@@ -541,9 +550,7 @@ function AthleteContent() {
       setUserId(user.id)
       const { data: profile } = await supabase.from('profiles').select('custom_questions').eq('id', user.id).single()
       if (profile?.custom_questions) setCustomQuestions(profile.custom_questions)
-      const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
-      const { data: entries } = await supabase.from('entries').select('*').eq('user_id', user.id).gte('created_at', cutoff.toISOString()).order('created_at', { ascending:false })
-      if (entries) setAllEntries(entries)
+      await loadEntries(user.id)
     })
   }, [])
 
@@ -559,11 +566,17 @@ function AthleteContent() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.replace('/auth'); return }
     await supabase.from('entries').insert({ user_id: user.id, type: tab, data })
-const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
-const { data: entries } = await supabase.from('entries').select('*').eq('user_id', user.id).gte('created_at', cutoff.toISOString()).order('created_at', { ascending: false })
-if (entries) setAllEntries(entries)
+    await loadEntries(user.id)
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
-  }, [tab])
+  }, [tab, loadEntries])
+
+  const handleTabChange = useCallback(async (newTab: Tab) => {
+    setTab(newTab)
+    if (newTab === 'semaine' || newTab === 'stats') {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) await loadEntries(user.id)
+    }
+  }, [loadEntries])
 
   const tabs = [
     { id:'morning' as Tab, emoji:'☀️', label:'Morning', color:'#f5a623' },
@@ -584,7 +597,7 @@ if (entries) setAllEntries(entries)
       </nav>
       <div style={{ position:'fixed', top:56, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.85)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 10px', display:'flex', gap:5 }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ flex:1, padding:'8px 0', borderRadius:10, border:`1px solid ${tab===t.id ? t.color : 'rgba(255,255,255,0.07)'}`, background: tab===t.id ? `${t.color}18` : '#12121a', color: tab===t.id ? t.color : 'rgba(240,240,245,0.4)', fontFamily:"'DM Sans', sans-serif", fontSize:10, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
+          <button key={t.id} onClick={() => handleTabChange(t.id)} style={{ flex:1, padding:'8px 0', borderRadius:10, border:`1px solid ${tab===t.id ? t.color : 'rgba(255,255,255,0.07)'}`, background: tab===t.id ? `${t.color}18` : '#12121a', color: tab===t.id ? t.color : 'rgba(240,240,245,0.4)', fontFamily:"'DM Sans', sans-serif", fontSize:10, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
             <div style={{ fontSize:14 }}>{t.emoji}</div>
             <div style={{ marginTop:2 }}>{t.label}</div>
           </button>
