@@ -546,10 +546,39 @@ function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: bool
 
 
 // ── Profil ────────────────────────────────────────────────────────────────────
-function ProfilView({ name, email, athleteId, totalEntries }: {
-  name: string; email: string; athleteId: string | null; totalEntries: number
+function ProfilView({ userId, name, email, athleteId, totalEntries, onBack }: {
+  userId: string; name: string; email: string; athleteId: string | null; totalEntries: number; onBack: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [age, setAge] = useState('')
+  const [weight, setWeight] = useState('')
+  const [height, setHeight] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [savedMsg, setSavedMsg] = useState(false)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.from('profiles').select('age, weight, height').eq('id', userId).single()
+      .then(({ data }) => {
+        if (data) {
+          if (data.age) setAge(String(data.age))
+          if (data.weight) setWeight(String(data.weight))
+          if (data.height) setHeight(String(data.height))
+        }
+      })
+  }, [userId])
+
+  const save = async () => {
+    setSaving(true)
+    await supabase.from('profiles').update({
+      age: age ? parseInt(age) : null,
+      weight: weight ? parseFloat(weight) : null,
+      height: height ? parseInt(height) : null,
+    }).eq('id', userId)
+    setSaving(false)
+    setSavedMsg(true)
+    setTimeout(() => setSavedMsg(false), 2500)
+  }
 
   const copyId = () => {
     if (!athleteId) return
@@ -558,52 +587,84 @@ function ProfilView({ name, email, athleteId, totalEntries }: {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: '#1a1a26', border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12, color: '#f0f0f5', fontFamily: "'DM Sans', sans-serif",
+    fontSize: 16, padding: '12px 14px', outline: 'none', boxSizing: 'border-box',
+    textAlign: 'center',
+  }
+
   return (
     <div>
+      {/* Back button */}
+      <button onClick={onBack} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'rgba(240,240,245,0.4)', background:'none', border:'none', cursor:'pointer', marginBottom:24, padding:0 }}>
+        ‹ Retour
+      </button>
+
+      {/* Header */}
       <div style={{ textAlign:'center', marginBottom:28 }}>
-        <div style={{ fontSize:48, marginBottom:8 }}>👤</div>
-        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:28, letterSpacing:3, color:'#60a5fa' }}>MON PROFIL</div>
+        <div style={{ width:72, height:72, borderRadius:'50%', background:'linear-gradient(135deg, #7b6af5, #60a5fa)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:28 }}>
+          {name.charAt(0).toUpperCase()}
+        </div>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:26, letterSpacing:3, color:'#f0f0f5' }}>{name}</div>
+        <div style={{ fontSize:12, color:'rgba(240,240,245,0.35)', marginTop:2 }}>{email}</div>
       </div>
 
       {/* ID Card */}
-      <div style={{ background:'linear-gradient(135deg, #1a1a2e, #16213e)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:20, padding:28, marginBottom:16, textAlign:'center' }}>
-        <div style={{ fontSize:11, letterSpacing:2, textTransform:'uppercase', color:'rgba(96,165,250,0.6)', marginBottom:12 }}>Ton ID athlète</div>
-        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:56, letterSpacing:12, color:'#60a5fa', lineHeight:1, marginBottom:16 }}>
+      <div style={{ background:'linear-gradient(135deg, #1a1a2e, #16213e)', border:'1px solid rgba(96,165,250,0.35)', borderRadius:20, padding:24, marginBottom:20, textAlign:'center' }}>
+        <div style={{ fontSize:10, letterSpacing:2, textTransform:'uppercase', color:'rgba(96,165,250,0.6)', marginBottom:10 }}>Mon ID athlète</div>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:52, letterSpacing:10, color:'#60a5fa', lineHeight:1, marginBottom:6 }}>
           {athleteId || '------'}
         </div>
-        <div style={{ fontSize:12, color:'rgba(240,240,245,0.4)', marginBottom:20, lineHeight:1.5 }}>
-          Donne ce code à ton coach pour qu'il t'ajoute à sa liste
+        <div style={{ fontSize:11, color:'rgba(240,240,245,0.35)', marginBottom:16 }}>
+          Donne ce code à ton coach pour qu'il t'ajoute
         </div>
-        <button onClick={copyId} style={{ padding:'10px 24px', borderRadius:12, background: copied ? 'rgba(61,214,140,0.2)' : 'rgba(96,165,250,0.15)', border:`1px solid ${copied ? 'rgba(61,214,140,0.4)' : 'rgba(96,165,250,0.3)'}`, color: copied ? '#3dd68c' : '#60a5fa', fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
-          {copied ? '✓ Copié !' : '📋 Copier l'ID'}
+        <button onClick={copyId} style={{ padding:'9px 22px', borderRadius:10, background: copied ? 'rgba(61,214,140,0.2)' : 'rgba(96,165,250,0.12)', border:`1px solid ${copied ? 'rgba(61,214,140,0.4)' : 'rgba(96,165,250,0.25)'}`, color: copied ? '#3dd68c' : '#60a5fa', fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
+          {copied ? '✓ Copié !' : '📋 Copier mon ID'}
         </button>
       </div>
 
-      {/* Infos */}
-      <div style={{ background:'#12121a', borderRadius:16, padding:20, marginBottom:12, border:'1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.35)', marginBottom:14, fontWeight:500 }}>Mes informations</div>
-        {[
-          { label:'Prénom', value: name, emoji:'🏃' },
-          { label:'Email', value: email, emoji:'📧' },
-          { label:'Rôle', value: 'Athlète', emoji:'🏋️' },
-        ].map(item => (
-          <div key={item.label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
-            <span style={{ fontSize:13, color:'rgba(240,240,245,0.45)' }}>{item.emoji} {item.label}</span>
-            <span style={{ fontSize:13, color:'#f0f0f5', fontWeight:500 }}>{item.value || '—'}</span>
+      {/* Infos physiques */}
+      <div style={{ background:'#12121a', borderRadius:16, padding:20, marginBottom:16, border:'1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.35)', marginBottom:18, fontWeight:500 }}>
+          Mes infos physiques
+        </div>
+
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:18 }}>
+          {[
+            { label:'Âge', unit:'ans', value:age, set:setAge, emoji:'🎂' },
+            { label:'Poids', unit:'kg', value:weight, set:setWeight, emoji:'⚖️' },
+            { label:'Taille', unit:'cm', value:height, set:setHeight, emoji:'📏' },
+          ].map(f => (
+            <div key={f.label}>
+              <div style={{ fontSize:10, color:'rgba(240,240,245,0.35)', letterSpacing:1, textTransform:'uppercase', marginBottom:6, textAlign:'center' }}>{f.emoji} {f.label}</div>
+              <input
+                type="number"
+                value={f.value}
+                onChange={e => f.set(e.target.value)}
+                placeholder="—"
+                style={inputStyle}
+              />
+              <div style={{ fontSize:10, color:'rgba(240,240,245,0.25)', textAlign:'center', marginTop:4 }}>{f.unit}</div>
+            </div>
+          ))}
+        </div>
+
+        {savedMsg && (
+          <div style={{ background:'rgba(61,214,140,0.1)', border:'1px solid rgba(61,214,140,0.3)', borderRadius:10, padding:'9px 14px', fontSize:13, color:'#3dd68c', marginBottom:12, textAlign:'center' }}>
+            ✓ Profil mis à jour !
           </div>
-        ))}
+        )}
+
+        <button onClick={save} disabled={saving} style={{ width:'100%', padding:'13px', background:'#7b6af5', border:'none', borderRadius:12, color:'#fff', fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:500, cursor:'pointer', opacity: saving ? 0.7 : 1 }}>
+          {saving ? 'Enregistrement...' : 'Enregistrer mon profil'}
+        </button>
       </div>
 
-      {/* Stats rapides */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-        <div style={{ background:'#12121a', borderRadius:14, padding:'16px 14px', border:'1px solid rgba(255,255,255,0.07)', textAlign:'center' }}>
-          <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:36, color:'#60a5fa', lineHeight:1 }}>{totalEntries}</div>
-          <div style={{ fontSize:10, color:'rgba(240,240,245,0.35)', letterSpacing:1, textTransform:'uppercase', marginTop:4 }}>Entrées totales</div>
-        </div>
-        <div style={{ background:'#12121a', borderRadius:14, padding:'16px 14px', border:'1px solid rgba(255,255,255,0.07)', textAlign:'center' }}>
-          <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:36, color:'#3dd68c', lineHeight:1 }}>{athleteId || '—'}</div>
-          <div style={{ fontSize:10, color:'rgba(240,240,245,0.35)', letterSpacing:1, textTransform:'uppercase', marginTop:4 }}>Mon ID coach</div>
-        </div>
+      {/* Stats */}
+      <div style={{ background:'#12121a', borderRadius:14, padding:'16px 20px', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ fontSize:13, color:'rgba(240,240,245,0.4)' }}>🏋️ Athlète</div>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:22, color:'#7b6af5' }}>{totalEntries} <span style={{ fontSize:11, fontFamily:"'DM Sans', sans-serif", color:'rgba(240,240,245,0.35)' }}>entrées</span></div>
       </div>
     </div>
   )
@@ -688,7 +749,7 @@ function AthleteContent() {
       <div style={{ position:'fixed', inset:0, background:`radial-gradient(ellipse 60% 40% at 50% 0%, ${activeColor}12, transparent 60%)`, pointerEvents:'none', zIndex:0, transition:'background 0.4s' }} />
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'rgba(10,10,15,0.85)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, color:activeColor, transition:'color 0.3s' }}>ATHLETE</div>
-        <div style={{ fontSize:12, color:'rgba(240,240,245,0.4)' }}>{userName && <span>Salut <span style={{ color:'#f0f0f5', fontWeight:500 }}>{userName}</span> 👋</span>}</div>
+        <button onClick={() => handleTabChange('profil')} style={{ fontSize:12, color:'rgba(240,240,245,0.4)', background:'none', border:'none', cursor:'pointer', padding:'4px 8px', borderRadius:8 }}>{userName && <span>Salut <span style={{ color:'#f0f0f5', fontWeight:500 }}>{userName}</span> 👋</span>}</button>
         <button onClick={() => { supabase.auth.signOut(); router.replace('/auth') }} style={{ fontSize:11, color:'rgba(240,240,245,0.3)', background:'none', border:'none', cursor:'pointer', letterSpacing:0.5 }}>QUITTER</button>
       </nav>
       <div style={{ position:'fixed', top:56, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.85)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 10px', display:'flex', gap:5 }}>
@@ -716,7 +777,7 @@ function AthleteContent() {
         {tab==='journal' && <Journal onSave={handleSave} saving={saving} />}
         {tab==='semaine' && userId && <WeekCalendar userId={userId} />}
         {tab==='stats'   && userId && <StatsView userId={userId} />}
-        {tab==='profil'  && <ProfilView name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} />}
+        {tab==='profil'  && userId && <ProfilView userId={userId} name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} onBack={() => handleTabChange('morning')} />}
       </main>
     </div>
   )
