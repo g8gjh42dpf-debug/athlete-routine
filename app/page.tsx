@@ -10,11 +10,12 @@ export default function CoachPage() {
   const router = useRouter()
   const supabase = createClient()
   const [coachName, setCoachName] = useState('')
+  const [coachEmail, setCoachEmail] = useState('')
   const [athletes, setAthletes] = useState<Athlete[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<'athletes' | 'stats' | 'ajouter'>('athletes')
+  const [tab, setTab] = useState<'athletes' | 'stats' | 'ajouter' | 'profil'>('athletes')
   const [addId, setAddId] = useState('')
   const [addLoading, setAddLoading] = useState(false)
   const [addMsg, setAddMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -29,6 +30,7 @@ export default function CoachPage() {
       if (profile?.role !== 'coach') { router.replace('/athlete'); return }
       setCoachId(user.id)
       setCoachName(profile.full_name || 'Coach')
+      setCoachEmail(user.email || '')
       loadAthletes(user.id)
     })
   }, [])
@@ -124,6 +126,7 @@ export default function CoachPage() {
             { id: 'athletes', label: '👥 Mes athlètes' },
             { id: 'stats',    label: '📊 Stats globales' },
             { id: 'ajouter',  label: '➕ Ajouter' },
+            { id: 'profil',   label: '👤 Profil' },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id as any)} style={{ padding: '10px 18px', borderRadius: 10, border: `1px solid ${tab === t.id ? accent : 'rgba(255,255,255,0.07)'}`, background: tab === t.id ? accent : '#12121a', color: tab === t.id ? '#0a0a0f' : 'rgba(240,240,245,0.6)', fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               {t.label}
@@ -272,6 +275,41 @@ export default function CoachPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Profil Coach ── */}
+        {tab === 'profil' && (
+          <div style={{ maxWidth: 440 }}>
+            <div style={{ textAlign:'center', marginBottom:28 }}>
+              <div style={{ fontSize:48, marginBottom:8 }}>📋</div>
+              <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:28, letterSpacing:3, color: accent }}>MON PROFIL COACH</div>
+            </div>
+
+            <div style={{ background:'#12121a', borderRadius:16, padding:24, marginBottom:16, border:`1px solid ${accent}33` }}>
+              <div style={{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.35)', marginBottom:14, fontWeight:500 }}>Mes informations</div>
+              {[
+                { label:'Prénom', value: coachName, emoji:'🏆' },
+                { label:'Email', value: coachEmail, emoji:'📧' },
+                { label:'Rôle', value: 'Coach', emoji:'📋' },
+                { label:'Athlètes suivis', value: String(athletes.length), emoji:'👥' },
+              ].map(item => (
+                <div key={item.label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{ fontSize:13, color:'rgba(240,240,245,0.45)' }}>{item.emoji} {item.label}</span>
+                  <span style={{ fontSize:13, color:'#f0f0f5', fontWeight:500 }}>{item.value || '—'}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ background:'#12121a', borderRadius:16, padding:20, border:'1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.35)', marginBottom:14, fontWeight:500 }}>Comment ajouter un athlète</div>
+              <div style={{ fontSize:13, color:'rgba(240,240,245,0.6)', lineHeight:1.8 }}>
+                <div>1️⃣ L'athlète s'inscrit sur l'app</div>
+                <div>2️⃣ Il va dans l'onglet <span style={{ color: accent, fontWeight:600 }}>Profil</span></div>
+                <div>3️⃣ Il te donne son ID à 6 chiffres</div>
+                <div>4️⃣ Tu vas dans <span style={{ color: accent, fontWeight:600 }}>➕ Ajouter</span> et tu entres son ID</div>
+              </div>
             </div>
           </div>
         )}
