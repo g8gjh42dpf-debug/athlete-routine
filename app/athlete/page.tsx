@@ -142,6 +142,8 @@ const METRICS: MetricCfg[] = [
 function StatsView({ userId }: { userId: string }) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<string>('sleep_quality')
+  const [period, setPeriod] = useState<7|14|28>(28)
   const supabase = createClient()
 
   useEffect(() => {
@@ -154,9 +156,6 @@ function StatsView({ userId }: { userId: string }) {
   }, [userId])
 
   if (loading) return <div style={{ textAlign:'center', padding:40, color:'rgba(240,240,245,0.3)', fontSize:13 }}>Chargement...</div>
-  const [selected, setSelected] = useState<string>('sleep_quality')
-  const [period, setPeriod] = useState<7|14|28>(28)
-
   const metric = METRICS.find(m => m.key === selected)!
 
   const cutoff = new Date()
@@ -259,6 +258,8 @@ function StatsView({ userId }: { userId: string }) {
 function WeekCalendar({ userId }: { userId: string }) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
+  const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -271,9 +272,6 @@ function WeekCalendar({ userId }: { userId: string }) {
   }, [userId])
 
   if (loading) return <div style={{ textAlign:'center', padding:40, color:'rgba(240,240,245,0.3)', fontSize:13 }}>Chargement...</div>
-  const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
-
   const days = Array.from({ length:7 }, (_,i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate()+i); return d })
   const byDay: Record<string, Entry[]> = {}
   entries.forEach(e => { const key = formatKey(new Date(e.created_at)); if (!byDay[key]) byDay[key]=[]; byDay[key].push(e) })
