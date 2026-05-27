@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-type Tab = 'night' | 'morning' | 'journal' | 'semaine' | 'stats'
+type Tab = 'night' | 'morning' | 'journal' | 'semaine' | 'stats' | 'profil'
 type CustomQuestion = { id: string; label: string }
 type CustomQuestions = { morning: CustomQuestion[]; night: CustomQuestion[] }
 type Entry = { id: string; type: string; data: any; created_at: string }
@@ -544,6 +544,71 @@ function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: bool
   )
 }
 
+
+// ── Profil ────────────────────────────────────────────────────────────────────
+function ProfilView({ name, email, athleteId, totalEntries }: {
+  name: string; email: string; athleteId: string | null; totalEntries: number
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const copyId = () => {
+    if (!athleteId) return
+    navigator.clipboard.writeText(athleteId)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div>
+      <div style={{ textAlign:'center', marginBottom:28 }}>
+        <div style={{ fontSize:48, marginBottom:8 }}>👤</div>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:28, letterSpacing:3, color:'#60a5fa' }}>MON PROFIL</div>
+      </div>
+
+      {/* ID Card */}
+      <div style={{ background:'linear-gradient(135deg, #1a1a2e, #16213e)', border:'1px solid rgba(96,165,250,0.3)', borderRadius:20, padding:28, marginBottom:16, textAlign:'center' }}>
+        <div style={{ fontSize:11, letterSpacing:2, textTransform:'uppercase', color:'rgba(96,165,250,0.6)', marginBottom:12 }}>Ton ID athlète</div>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:56, letterSpacing:12, color:'#60a5fa', lineHeight:1, marginBottom:16 }}>
+          {athleteId || '------'}
+        </div>
+        <div style={{ fontSize:12, color:'rgba(240,240,245,0.4)', marginBottom:20, lineHeight:1.5 }}>
+          Donne ce code à ton coach pour qu'il t'ajoute à sa liste
+        </div>
+        <button onClick={copyId} style={{ padding:'10px 24px', borderRadius:12, background: copied ? 'rgba(61,214,140,0.2)' : 'rgba(96,165,250,0.15)', border:`1px solid ${copied ? 'rgba(61,214,140,0.4)' : 'rgba(96,165,250,0.3)'}`, color: copied ? '#3dd68c' : '#60a5fa', fontFamily:"'DM Sans', sans-serif", fontSize:13, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
+          {copied ? '✓ Copié !' : '📋 Copier l'ID'}
+        </button>
+      </div>
+
+      {/* Infos */}
+      <div style={{ background:'#12121a', borderRadius:16, padding:20, marginBottom:12, border:'1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.35)', marginBottom:14, fontWeight:500 }}>Mes informations</div>
+        {[
+          { label:'Prénom', value: name, emoji:'🏃' },
+          { label:'Email', value: email, emoji:'📧' },
+          { label:'Rôle', value: 'Athlète', emoji:'🏋️' },
+        ].map(item => (
+          <div key={item.label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+            <span style={{ fontSize:13, color:'rgba(240,240,245,0.45)' }}>{item.emoji} {item.label}</span>
+            <span style={{ fontSize:13, color:'#f0f0f5', fontWeight:500 }}>{item.value || '—'}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Stats rapides */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+        <div style={{ background:'#12121a', borderRadius:14, padding:'16px 14px', border:'1px solid rgba(255,255,255,0.07)', textAlign:'center' }}>
+          <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:36, color:'#60a5fa', lineHeight:1 }}>{totalEntries}</div>
+          <div style={{ fontSize:10, color:'rgba(240,240,245,0.35)', letterSpacing:1, textTransform:'uppercase', marginTop:4 }}>Entrées totales</div>
+        </div>
+        <div style={{ background:'#12121a', borderRadius:14, padding:'16px 14px', border:'1px solid rgba(255,255,255,0.07)', textAlign:'center' }}>
+          <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:36, color:'#3dd68c', lineHeight:1 }}>{athleteId || '—'}</div>
+          <div style={{ fontSize:10, color:'rgba(240,240,245,0.35)', letterSpacing:1, textTransform:'uppercase', marginTop:4 }}>Mon ID coach</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 function AthleteContent() {
   const router = useRouter()
@@ -555,6 +620,7 @@ function AthleteContent() {
   const [userId, setUserId] = useState<string | null>(null)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestions>({ morning:[], night:[] })
   const [athleteId, setAthleteId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState('')
   const [allEntries, setAllEntries] = useState<Entry[]>([])
   const supabase = createClient()
 
@@ -569,11 +635,12 @@ function AthleteContent() {
 
   useEffect(() => {
     const paramTab = searchParams.get('tab') as Tab | null
-    if (paramTab && ['night','morning','journal','semaine','stats'].includes(paramTab)) setTab(paramTab)
+    if (paramTab && ['night','morning','journal','semaine','stats','profil'].includes(paramTab)) setTab(paramTab)
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.replace('/auth'); return }
       if (user.email === process.env.NEXT_PUBLIC_COACH_EMAIL) { router.replace('/coach'); return }
       setUserName(user.user_metadata?.full_name?.split(' ')[0] || 'Athlète')
+      setUserEmail(user.email || '')
       setUserId(user.id)
       const { data: profile } = await supabase.from('profiles').select('custom_questions, athlete_id').eq('id', user.id).single()
       if (profile?.custom_questions) setCustomQuestions(profile.custom_questions)
@@ -600,7 +667,7 @@ function AthleteContent() {
 
   const handleTabChange = useCallback(async (newTab: Tab) => {
     setTab(newTab)
-    if (newTab === 'semaine' || newTab === 'stats') {
+    if (newTab === 'semaine' || newTab === 'stats' || newTab === 'profil') {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) await loadEntries(user.id)
     }
@@ -612,6 +679,7 @@ function AthleteContent() {
     { id:'journal' as Tab, emoji:'📓', label:'Journal', color:'#3dd68c' },
     { id:'semaine' as Tab, emoji:'📅', label:'Semaine', color:'#60a5fa' },
     { id:'stats'   as Tab, emoji:'📊', label:'Stats',   color:'#f5a623' },
+    { id:'profil'  as Tab, emoji:'👤', label:'Profil',  color:'#60a5fa' },
   ]
   const activeColor = tabs.find(t => t.id===tab)?.color || '#7b6af5'
 
@@ -648,6 +716,7 @@ function AthleteContent() {
         {tab==='journal' && <Journal onSave={handleSave} saving={saving} />}
         {tab==='semaine' && userId && <WeekCalendar userId={userId} />}
         {tab==='stats'   && userId && <StatsView userId={userId} />}
+        {tab==='profil'  && <ProfilView name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} />}
       </main>
     </div>
   )
