@@ -17,6 +17,7 @@ type Athlete = {
 
 type Entry = {
   id: string
+  user_id: string
   type: string
   data: Record<string, unknown>
   created_at: string
