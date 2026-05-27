@@ -699,11 +699,11 @@ function AthleteContent() {
     if (paramTab && ['night','morning','journal','semaine','stats','profil'].includes(paramTab)) setTab(paramTab)
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.replace('/auth'); return }
-      if (user.email === process.env.NEXT_PUBLIC_COACH_EMAIL) { router.replace('/coach'); return }
       setUserName(user.user_metadata?.full_name?.split(' ')[0] || 'Athlète')
       setUserEmail(user.email || '')
       setUserId(user.id)
-      const { data: profile } = await supabase.from('profiles').select('custom_questions, athlete_id').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('role, custom_questions, athlete_id').eq('id', user.id).single()
+      if (profile?.role === 'coach') { router.replace('/coach'); return }
       if (profile?.custom_questions) setCustomQuestions(profile.custom_questions)
       if (profile?.athlete_id) setAthleteId(profile.athlete_id)
       await loadEntries(user.id)
