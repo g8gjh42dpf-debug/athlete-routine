@@ -761,16 +761,6 @@ function AthleteContent() {
         ))}
       </div>
       <main style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'130px 20px 60px' }}>
-        {/* ID Card */}
-        {tab !== 'semaine' && tab !== 'stats' && athleteId && (
-          <div style={{ background:'#12121a', border:'1px solid rgba(245,166,35,0.2)', borderRadius:14, padding:'12px 16px', marginBottom:20, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div>
-              <div style={{ fontSize:9, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.3)', marginBottom:4 }}>Ton ID athlète</div>
-              <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:26, letterSpacing:6, color:'#f5a623' }}>{athleteId}</div>
-            </div>
-            <div style={{ fontSize:11, color:'rgba(240,240,245,0.3)', textAlign:'right', maxWidth:120, lineHeight:1.4 }}>Donne ce code à ton coach</div>
-          </div>
-        )}
         {saved && <div style={{ background:'rgba(61,214,140,0.12)', border:'1px solid rgba(61,214,140,0.3)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'#3dd68c', marginBottom:20, textAlign:'center', fontWeight:500 }}>✓ Entrée enregistrée avec succès !</div>}
         {tab==='morning' && <MorningRoutine onSave={handleSave} saving={saving} customQuestions={customQuestions.morning} onSaveCustomQuestions={q => saveCustomQuestions('morning', q)} />}
         {tab==='night'   && <NightRoutine   onSave={handleSave} saving={saving} customQuestions={customQuestions.night}   onSaveCustomQuestions={q => saveCustomQuestions('night', q)} />}
