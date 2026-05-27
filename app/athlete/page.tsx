@@ -139,7 +139,21 @@ const METRICS: MetricCfg[] = [
   { key:'performance',   label:'Performance',      emoji:'📈', color:'#3dd68c', source:'journal', min:1, max:10 },
 ]
 
-function StatsView({ entries }: { entries: Entry[] }) {
+function StatsView({ userId }: { userId: string }) {
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    if (!userId) return
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
+    supabase.from('entries').select('*').eq('user_id', userId)
+      .gte('created_at', cutoff.toISOString())
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setEntries(data); setLoading(false) })
+  }, [userId])
+
+  if (loading) return <div style={{ textAlign:'center', padding:40, color:'rgba(240,240,245,0.3)', fontSize:13 }}>Chargement...</div>
   const [selected, setSelected] = useState<string>('sleep_quality')
   const [period, setPeriod] = useState<7|14|28>(28)
 
@@ -242,7 +256,21 @@ function StatsView({ entries }: { entries: Entry[] }) {
 }
 
 // ── Week Calendar ─────────────────────────────────────────────────────────────
-function WeekCalendar({ entries }: { entries: Entry[] }) {
+function WeekCalendar({ userId }: { userId: string }) {
+  const [entries, setEntries] = useState<Entry[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    if (!userId) return
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60)
+    supabase.from('entries').select('*').eq('user_id', userId)
+      .gte('created_at', cutoff.toISOString())
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (data) setEntries(data); setLoading(false) })
+  }, [userId])
+
+  if (loading) return <div style={{ textAlign:'center', padding:40, color:'rgba(240,240,245,0.3)', fontSize:13 }}>Chargement...</div>
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
@@ -528,6 +556,7 @@ function AthleteContent() {
   const [userName, setUserName] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestions>({ morning:[], night:[] })
+  const [athleteId, setAthleteId] = useState<string | null>(null)
   const [allEntries, setAllEntries] = useState<Entry[]>([])
   const supabase = createClient()
 
@@ -548,8 +577,9 @@ function AthleteContent() {
       if (user.email === process.env.NEXT_PUBLIC_COACH_EMAIL) { router.replace('/coach'); return }
       setUserName(user.user_metadata?.full_name?.split(' ')[0] || 'Athlète')
       setUserId(user.id)
-      const { data: profile } = await supabase.from('profiles').select('custom_questions').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('custom_questions, athlete_id').eq('id', user.id).single()
       if (profile?.custom_questions) setCustomQuestions(profile.custom_questions)
+      if (profile?.athlete_id) setAthleteId(profile.athlete_id)
       await loadEntries(user.id)
     })
   }, [])
@@ -604,12 +634,22 @@ function AthleteContent() {
         ))}
       </div>
       <main style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'130px 20px 60px' }}>
+        {/* ID Card */}
+        {tab !== 'semaine' && tab !== 'stats' && athleteId && (
+          <div style={{ background:'#12121a', border:'1px solid rgba(245,166,35,0.2)', borderRadius:14, padding:'12px 16px', marginBottom:20, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div>
+              <div style={{ fontSize:9, letterSpacing:1.5, textTransform:'uppercase', color:'rgba(240,240,245,0.3)', marginBottom:4 }}>Ton ID athlète</div>
+              <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:26, letterSpacing:6, color:'#f5a623' }}>{athleteId}</div>
+            </div>
+            <div style={{ fontSize:11, color:'rgba(240,240,245,0.3)', textAlign:'right', maxWidth:120, lineHeight:1.4 }}>Donne ce code à ton coach</div>
+          </div>
+        )}
         {saved && <div style={{ background:'rgba(61,214,140,0.12)', border:'1px solid rgba(61,214,140,0.3)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'#3dd68c', marginBottom:20, textAlign:'center', fontWeight:500 }}>✓ Entrée enregistrée avec succès !</div>}
         {tab==='morning' && <MorningRoutine onSave={handleSave} saving={saving} customQuestions={customQuestions.morning} onSaveCustomQuestions={q => saveCustomQuestions('morning', q)} />}
         {tab==='night'   && <NightRoutine   onSave={handleSave} saving={saving} customQuestions={customQuestions.night}   onSaveCustomQuestions={q => saveCustomQuestions('night', q)} />}
         {tab==='journal' && <Journal onSave={handleSave} saving={saving} />}
-        {tab==='semaine' && <WeekCalendar entries={allEntries} />}
-        {tab==='stats'   && <StatsView entries={allEntries} />}
+        {tab==='semaine' && userId && <WeekCalendar userId={userId} />}
+        {tab==='stats'   && userId && <StatsView userId={userId} />}
       </main>
     </div>
   )
