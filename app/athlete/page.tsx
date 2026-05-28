@@ -546,8 +546,8 @@ function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: bool
 
 
 // ── Profil ────────────────────────────────────────────────────────────────────
-function ProfilView({ userId, name, email, athleteId, totalEntries, onBack }: {
-  userId: string; name: string; email: string; athleteId: string | null; totalEntries: number; onBack: () => void
+function ProfilView({ userId, name, email, athleteId, totalEntries, onLogout }: {
+  userId: string; name: string; email: string; athleteId: string | null; totalEntries: number; onLogout: () => void
 }) {
   const [copied, setCopied] = useState(false)
   const [age, setAge] = useState('')
@@ -596,11 +596,6 @@ function ProfilView({ userId, name, email, athleteId, totalEntries, onBack }: {
 
   return (
     <div>
-      {/* Back button */}
-      <button onClick={onBack} style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'rgba(240,240,245,0.4)', background:'none', border:'none', cursor:'pointer', marginBottom:24, padding:0 }}>
-        ‹ Retour
-      </button>
-
       {/* Header */}
       <div style={{ textAlign:'center', marginBottom:28 }}>
         <div style={{ width:72, height:72, borderRadius:'50%', background:'linear-gradient(135deg, #7b6af5, #60a5fa)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:28 }}>
@@ -662,10 +657,15 @@ function ProfilView({ userId, name, email, athleteId, totalEntries, onBack }: {
       </div>
 
       {/* Stats */}
-      <div style={{ background:'#12121a', borderRadius:14, padding:'16px 20px', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ background:'#12121a', borderRadius:14, padding:'16px 20px', border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:40 }}>
         <div style={{ fontSize:13, color:'rgba(240,240,245,0.4)' }}>🏋️ Athlète</div>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:22, color:'#7b6af5' }}>{totalEntries} <span style={{ fontSize:11, fontFamily:"'DM Sans', sans-serif", color:'rgba(240,240,245,0.35)' }}>entrées</span></div>
       </div>
+
+      {/* Logout */}
+      <button onClick={onLogout} style={{ width:'100%', padding:'14px', background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', borderRadius:14, color:'#f87171', fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:500, cursor:'pointer', transition:'all 0.2s', marginBottom:8 }}>
+        🚪 Se déconnecter
+      </button>
     </div>
   )
 }
@@ -735,28 +735,28 @@ function AthleteContent() {
   }, [loadEntries])
 
   const tabs = [
-    { id:'morning' as Tab, emoji:'☀️', label:'Morning', color:'#f5a623' },
-    { id:'night'   as Tab, emoji:'🌙', label:'Night',   color:'#7b6af5' },
-    { id:'journal' as Tab, emoji:'📓', label:'Journal', color:'#3dd68c' },
-    { id:'semaine' as Tab, emoji:'📅', label:'Semaine', color:'#60a5fa' },
-    { id:'stats'   as Tab, emoji:'📊', label:'Stats',   color:'#f5a623' },
-    { id:'profil'  as Tab, emoji:'👤', label:'Profil',  color:'#60a5fa' },
+    { id:'morning' as Tab, emoji:'☀️', label:'Morning',   color:'#f5a623' },
+    { id:'night'   as Tab, emoji:'🌙', label:'Night',     color:'#7b6af5' },
+    { id:'journal' as Tab, emoji:'📓', label:'WOD',       color:'#3dd68c' },
+    { id:'semaine' as Tab, emoji:'📅', label:'Calendrier',color:'#60a5fa' },
+    { id:'stats'   as Tab, emoji:'📊', label:'Stats',     color:'#f87171' },
   ]
   const activeColor = tabs.find(t => t.id===tab)?.color || '#7b6af5'
 
   return (
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f5', fontFamily:"'DM Sans', sans-serif" }}>
       <div style={{ position:'fixed', inset:0, background:`radial-gradient(ellipse 60% 40% at 50% 0%, ${activeColor}12, transparent 60%)`, pointerEvents:'none', zIndex:0, transition:'background 0.4s' }} />
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', background:'rgba(10,10,15,0.85)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, color:activeColor, transition:'color 0.3s' }}>ATHLETE</div>
-        <button onClick={() => handleTabChange('profil')} style={{ fontSize:12, color:'rgba(240,240,245,0.4)', background:'none', border:'none', cursor:'pointer', padding:'4px 8px', borderRadius:8 }}>{userName && <span>Salut <span style={{ color:'#f0f0f5', fontWeight:500 }}>{userName}</span> 👋</span>}</button>
-        <button onClick={() => { supabase.auth.signOut(); router.replace('/auth') }} style={{ fontSize:11, color:'rgba(240,240,245,0.3)', background:'none', border:'none', cursor:'pointer', letterSpacing:0.5 }}>QUITTER</button>
+        <button onClick={() => handleTabChange('profil')} style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg, #7b6af5, #60a5fa)`, border:'2px solid rgba(255,255,255,0.15)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue', sans-serif", fontSize:15, color:'#fff', letterSpacing:0, flexShrink:0, transition:'transform 0.2s', outline:'none' }}>
+          {userName.charAt(0).toUpperCase()}
+        </button>
       </nav>
-      <div style={{ position:'fixed', top:56, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.85)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 10px', display:'flex', gap:5 }}>
+      <div style={{ position:'fixed', top:60, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 12px', display:'flex', gap:6 }}>
         {tabs.map(t => (
-          <button key={t.id} onClick={() => handleTabChange(t.id)} style={{ flex:1, padding:'8px 0', borderRadius:10, border:`1px solid ${tab===t.id ? t.color : 'rgba(255,255,255,0.07)'}`, background: tab===t.id ? `${t.color}18` : '#12121a', color: tab===t.id ? t.color : 'rgba(240,240,245,0.4)', fontFamily:"'DM Sans', sans-serif", fontSize:10, fontWeight:500, cursor:'pointer', transition:'all 0.2s' }}>
-            <div style={{ fontSize:14 }}>{t.emoji}</div>
-            <div style={{ marginTop:2 }}>{t.label}</div>
+          <button key={t.id} onClick={() => handleTabChange(t.id)} style={{ flex:1, padding:'8px 0', borderRadius:10, border:`1px solid ${tab===t.id ? t.color : 'rgba(255,255,255,0.06)'}`, background: tab===t.id ? `${t.color}20` : 'transparent', color: tab===t.id ? t.color : 'rgba(240,240,245,0.35)', fontFamily:"'DM Sans', sans-serif", fontSize:9, fontWeight:600, cursor:'pointer', transition:'all 0.2s', letterSpacing:0.3 }}>
+            <div style={{ fontSize:16, marginBottom:2 }}>{t.emoji}</div>
+            <div>{t.label}</div>
           </button>
         ))}
       </div>
@@ -767,7 +767,7 @@ function AthleteContent() {
         {tab==='journal' && <Journal onSave={handleSave} saving={saving} />}
         {tab==='semaine' && userId && <WeekCalendar userId={userId} />}
         {tab==='stats'   && userId && <StatsView userId={userId} />}
-        {tab==='profil'  && userId && <ProfilView userId={userId} name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} onBack={() => handleTabChange('morning')} />}
+        {tab==='profil'  && userId && <ProfilView userId={userId} name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} onLogout={() => { supabase.auth.signOut(); router.replace('/auth') }} />}
       </main>
     </div>
   )
