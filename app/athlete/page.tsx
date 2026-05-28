@@ -789,7 +789,7 @@ function AthleteContent() {
           </button>
         </div>
       </nav>
-      <div style={{ position:'fixed', top:60, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 12px', display:'flex', gap:6 }}>
+      <div style={{ position:'fixed', top:64, left:0, right:0, zIndex:99, background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'8px 12px', display:'flex', gap:6 }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => handleTabChange(t.id)} style={{ flex:1, padding:'8px 0', borderRadius:10, border:`1px solid ${tab===t.id ? t.color : 'rgba(255,255,255,0.06)'}`, background: tab===t.id ? `${t.color}20` : 'transparent', color: tab===t.id ? t.color : 'rgba(240,240,245,0.35)', fontFamily:"'DM Sans', sans-serif", fontSize:9, fontWeight:600, cursor:'pointer', transition:'all 0.2s', letterSpacing:0.3 }}>
             <div style={{ fontSize:16, marginBottom:2 }}>{t.emoji}</div>
@@ -797,7 +797,7 @@ function AthleteContent() {
           </button>
         ))}
       </div>
-      <main style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'130px 20px 60px' }}>
+      <main style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'150px 20px 60px' }}>
 
         {tab==='morning' && <MorningRoutine onSave={handleSave} saving={saving} onSaved={saved && savedType==='morning'} customQuestions={customQuestions.morning} onSaveCustomQuestions={q => saveCustomQuestions('morning', q)} />}
         {tab==='night'   && <NightRoutine   onSave={handleSave} saving={saving} onSaved={saved && savedType==='night'}   customQuestions={customQuestions.night}   onSaveCustomQuestions={q => saveCustomQuestions('night', q)} />}
