@@ -748,7 +748,7 @@ function AthleteContent() {
       <div style={{ position:'fixed', inset:0, background:`radial-gradient(ellipse 60% 40% at 50% 0%, ${activeColor}12, transparent 60%)`, pointerEvents:'none', zIndex:0, transition:'background 0.4s' }} />
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, color:activeColor, transition:'color 0.3s' }}>ATHLETE</div>
-        <button onClick={() => handleTabChange('profil')} style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg, #7b6af5, #60a5fa)`, border:'2px solid rgba(255,255,255,0.15)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue', sans-serif", fontSize:15, color:'#fff', letterSpacing:0, flexShrink:0, transition:'transform 0.2s', outline:'none' }}>
+        <button onClick={() => handleTabChange('profil')} style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg, #f96167, #f5a623)`, border:'2px solid rgba(255,255,255,0.15)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bebas Neue', sans-serif", fontSize:15, color:'#fff', letterSpacing:0, flexShrink:0, transition:'transform 0.2s', outline:'none' }}>
           {userName.charAt(0).toUpperCase()}
         </button>
       </nav>
