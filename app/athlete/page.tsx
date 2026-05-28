@@ -514,6 +514,7 @@ function MorningRoutine({ onSave, saving, onSaved, customQuestions, onSaveCustom
       <button onClick={handleSave} disabled={saving} style={{ width:'100%', padding:16, background:'#f5a623', border:'none', borderRadius:14, color:'#0a0a0f', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', opacity:saving?0.7:1 }}>
         {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER MON MATIN ✓'}
       </button>
+      {onSaved && <div style={{ marginTop:12, padding:'10px 16px', background:'rgba(245,166,35,0.12)', border:'1px solid rgba(245,166,35,0.3)', borderRadius:10, textAlign:'center', fontSize:13, color:'#f5a623', fontWeight:500 }}>✓ Routine Morning enregistrée !</div>}
     </div>
   )
 }
