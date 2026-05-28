@@ -598,7 +598,7 @@ function ProfilView({ userId, name, email, athleteId, totalEntries, onLogout }: 
     <div>
       {/* Header */}
       <div style={{ textAlign:'center', marginBottom:28 }}>
-        <div style={{ width:72, height:72, borderRadius:'50%', background:'linear-gradient(135deg, #7b6af5, #60a5fa)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:28 }}>
+        <div style={{ width:72, height:72, borderRadius:'50%', background:'linear-gradient(135deg, #f96167, #f5a623)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px', fontSize:28 }}>
           {name.charAt(0).toUpperCase()}
         </div>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:26, letterSpacing:3, color:'#f0f0f5' }}>{name}</div>
