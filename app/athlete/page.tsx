@@ -583,9 +583,8 @@ function Journal({ onSave, saving, onSaved }: { onSave: (data: any) => void; sav
 const SLIDES = [
   {
     emoji: '👋',
-    title: 'Bienvenue dans
-ta routine',
-    desc: 'L'app qui suit ta progression au quotidien. 3 routines simples, quelques minutes par jour, des résultats visibles.',
+    title: 'Bienvenue dans ta routine',
+    desc: "L'app qui suit ta progression au quotidien. 3 routines simples, quelques minutes par jour, des résultats visibles.",
     color: '#7b6af5',
     bg: 'rgba(123,106,245,0.08)',
   },
@@ -625,7 +624,7 @@ function Onboarding({ onDone }: { onDone: () => void }) {
         <div style={{ fontSize:64, marginBottom:24, lineHeight:1 }}>{current.emoji}</div>
 
         {/* Title */}
-        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:32, letterSpacing:2, color:current.color, marginBottom:16, lineHeight:1.1, whiteSpace:'pre-line' }}>
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:32, letterSpacing:2, color:current.color, marginBottom:16, lineHeight:1.1 }}>
           {current.title}
         </div>
 
