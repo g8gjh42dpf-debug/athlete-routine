@@ -579,6 +579,83 @@ function Journal({ onSave, saving, onSaved }: { onSave: (data: any) => void; sav
 }
 
 
+// ── Onboarding ───────────────────────────────────────────────────────────────
+const SLIDES = [
+  {
+    emoji: '👋',
+    title: 'Bienvenue dans
+ta routine',
+    desc: 'L'app qui suit ta progression au quotidien. 3 routines simples, quelques minutes par jour, des résultats visibles.',
+    color: '#7b6af5',
+    bg: 'rgba(123,106,245,0.08)',
+  },
+  {
+    emoji: '☀️🌙',
+    title: 'Morning & Night',
+    desc: 'Chaque matin, prépare ta journée. Chaque soir, analyse ton recovery. Sommeil, énergie, stress — tout est tracké.',
+    color: '#f5a623',
+    bg: 'rgba(245,166,35,0.08)',
+  },
+  {
+    emoji: '📓',
+    title: 'Journal WOD',
+    desc: 'Après chaque séance, note ton RPE, ton ressenti, tes points à améliorer. Ton coach voit tout en temps réel.',
+    color: '#3dd68c',
+    bg: 'rgba(61,214,140,0.08)',
+  },
+]
+
+function Onboarding({ onDone }: { onDone: () => void }) {
+  const [slide, setSlide] = useState(0)
+  const current = SLIDES[slide]
+  const isLast = slide === SLIDES.length - 1
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000, background:'rgba(10,10,15,0.97)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px 28px' }}>
+      {/* Progress dots */}
+      <div style={{ display:'flex', gap:8, marginBottom:40 }}>
+        {SLIDES.map((_, i) => (
+          <div key={i} style={{ width: i === slide ? 24 : 8, height:8, borderRadius:4, background: i === slide ? current.color : 'rgba(255,255,255,0.15)', transition:'all 0.3s' }} />
+        ))}
+      </div>
+
+      {/* Card */}
+      <div style={{ width:'100%', maxWidth:360, background:'#12121a', borderRadius:28, padding:'40px 28px 32px', border:`1px solid ${current.color}33`, textAlign:'center', transition:'border-color 0.3s' }}>
+        {/* Emoji */}
+        <div style={{ fontSize:64, marginBottom:24, lineHeight:1 }}>{current.emoji}</div>
+
+        {/* Title */}
+        <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:32, letterSpacing:2, color:current.color, marginBottom:16, lineHeight:1.1, whiteSpace:'pre-line' }}>
+          {current.title}
+        </div>
+
+        {/* Description */}
+        <div style={{ fontSize:15, color:'rgba(240,240,245,0.6)', lineHeight:1.7, marginBottom:36 }}>
+          {current.desc}
+        </div>
+
+        {/* CTA Button */}
+        <button onClick={() => isLast ? onDone() : setSlide(s => s + 1)}
+          style={{ width:'100%', padding:'15px', background:current.color, border:'none', borderRadius:14, color: current.color === '#f5a623' ? '#0a0a0f' : '#fff', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', transition:'all 0.2s' }}>
+          {isLast ? 'COMMENCER 🚀' : 'SUIVANT →'}
+        </button>
+
+        {/* Skip */}
+        {!isLast && (
+          <button onClick={onDone} style={{ marginTop:14, fontSize:12, color:'rgba(240,240,245,0.25)', background:'none', border:'none', cursor:'pointer', letterSpacing:0.5 }}>
+            Passer l'intro
+          </button>
+        )}
+      </div>
+
+      {/* Slide counter */}
+      <div style={{ marginTop:24, fontSize:11, color:'rgba(240,240,245,0.2)', letterSpacing:1 }}>
+        {slide + 1} / {SLIDES.length}
+      </div>
+    </div>
+  )
+}
+
 // ── Profil ────────────────────────────────────────────────────────────────────
 function ProfilView({ userId, name, email, athleteId, totalEntries, onLogout }: {
   userId: string; name: string; email: string; athleteId: string | null; totalEntries: number; onLogout: () => void
@@ -717,6 +794,7 @@ function AthleteContent() {
   const [customQuestions, setCustomQuestions] = useState<CustomQuestions>({ morning:[], night:[] })
   const [athleteId, setAthleteId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState('')
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const [allEntries, setAllEntries] = useState<Entry[]>([])
   const supabase = createClient()
 
@@ -737,10 +815,11 @@ function AthleteContent() {
       setUserName(user.user_metadata?.full_name?.split(' ')[0] || 'Athlète')
       setUserEmail(user.email || '')
       setUserId(user.id)
-      const { data: profile } = await supabase.from('profiles').select('role, custom_questions, athlete_id').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('role, custom_questions, athlete_id, onboarding_done').eq('id', user.id).single()
       if (profile?.role === 'coach') { router.replace('/coach'); return }
       if (profile?.custom_questions) setCustomQuestions(profile.custom_questions)
       if (profile?.athlete_id) setAthleteId(profile.athlete_id)
+      if (!profile?.onboarding_done) setShowOnboarding(true)
       await loadEntries(user.id)
     })
   }, [])
@@ -751,6 +830,12 @@ function AthleteContent() {
     setCustomQuestions(updated)
     await supabase.from('profiles').update({ custom_questions: updated }).eq('id', userId)
   }, [userId, customQuestions])
+
+  const handleOnboardingDone = useCallback(async () => {
+    setShowOnboarding(false)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) await supabase.from('profiles').update({ onboarding_done: true }).eq('id', user.id)
+  }, [])
 
   const handleSave = useCallback(async (data: any) => {
     setSaving(true)
@@ -780,6 +865,7 @@ function AthleteContent() {
 
   return (
     <div style={{ minHeight:'100vh', background:'#0a0a0f', color:'#f0f0f5', fontFamily:"'DM Sans', sans-serif" }}>
+      {showOnboarding && <Onboarding onDone={handleOnboardingDone} />}
       <div style={{ position:'fixed', inset:0, background:`radial-gradient(ellipse 60% 40% at 50% 0%, ${activeColor}12, transparent 60%)`, pointerEvents:'none', zIndex:0, transition:'background 0.4s' }} />
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:'rgba(10,10,15,0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)', boxSizing:'border-box' }}>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, color:activeColor, transition:'color 0.3s' }}>ATHLETE</div>
