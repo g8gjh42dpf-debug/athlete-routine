@@ -425,8 +425,8 @@ function CustomQuestionsEditor({ questions, onSave, onClose, color }: {
 }
 
 // ── Night Routine ─────────────────────────────────────────────────────────────
-function NightRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions }: {
-  onSave: (data: any) => void; saving: boolean; customQuestions: CustomQuestion[]; onSaveCustomQuestions: (q: CustomQuestion[]) => void
+function NightRoutine({ onSave, saving, onSaved, customQuestions, onSaveCustomQuestions }: {
+  onSave: (data: any) => void; saving: boolean; onSaved: boolean; customQuestions: CustomQuestion[]; onSaveCustomQuestions: (q: CustomQuestion[]) => void
 }) {
   const [sleepGoal, setSleepGoal] = useState(7)
   const [stress, setStress] = useState(5)
@@ -463,13 +463,14 @@ function NightRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions }
       <button onClick={handleSave} disabled={saving} style={{ width:'100%', padding:16, background:'#7b6af5', border:'none', borderRadius:14, color:'#fff', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', opacity:saving?0.7:1 }}>
         {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER MA NUIT ✓'}
       </button>
+      {onSaved && <div style={{ marginTop:12, padding:'10px 16px', background:'rgba(123,106,245,0.12)', border:'1px solid rgba(123,106,245,0.3)', borderRadius:10, textAlign:'center', fontSize:13, color:'#7b6af5', fontWeight:500 }}>✓ Routine Night enregistrée !</div>}
     </div>
   )
 }
 
 // ── Morning Routine ───────────────────────────────────────────────────────────
-function MorningRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions }: {
-  onSave: (data: any) => void; saving: boolean; customQuestions: CustomQuestion[]; onSaveCustomQuestions: (q: CustomQuestion[]) => void
+function MorningRoutine({ onSave, saving, onSaved, customQuestions, onSaveCustomQuestions }: {
+  onSave: (data: any) => void; saving: boolean; onSaved: boolean; customQuestions: CustomQuestion[]; onSaveCustomQuestions: (q: CustomQuestion[]) => void
 }) {
   const [sleepQuality, setSleepQuality] = useState(7)
   const [sleepHours, setSleepHours] = useState(7)
@@ -518,8 +519,8 @@ function MorningRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions
 }
 
 // ── Session Form ─────────────────────────────────────────────────────────────
-function SessionForm({ sessionNum, onSave, saving }: {
-  sessionNum: 1 | 2; onSave: (data: any) => void; saving: boolean
+function SessionForm({ sessionNum, onSave, saving, onSaved }: {
+  sessionNum: 1 | 2; onSave: (data: any) => void; saving: boolean; onSaved: boolean
 }) {
   const [rpe, setRpe] = useState(7)
   const [performance, setPerformance] = useState(7)
@@ -540,12 +541,13 @@ function SessionForm({ sessionNum, onSave, saving }: {
         style={{ width:'100%', padding:16, background:color, border:'none', borderRadius:14, color:'#0a0a0f', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', opacity:saving?0.7:1, transition:'opacity 0.2s' }}>
         {saving ? 'ENREGISTREMENT...' : `ENREGISTRER SÉANCE ${sessionNum} ✓`}
       </button>
+      {onSaved && <div style={{ marginTop:12, padding:'10px 16px', background: sessionNum===1 ? 'rgba(61,214,140,0.12)' : 'rgba(96,165,250,0.12)', border:`1px solid ${sessionNum===1 ? 'rgba(61,214,140,0.3)' : 'rgba(96,165,250,0.3)'}`, borderRadius:10, textAlign:'center', fontSize:13, color:color, fontWeight:500 }}>✓ Séance {sessionNum} enregistrée !</div>}
     </div>
   )
 }
 
 // ── Journal ───────────────────────────────────────────────────────────────────
-function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: boolean }) {
+function Journal({ onSave, saving, onSaved }: { onSave: (data: any) => void; saving: boolean; onSaved: boolean }) {
   const [session, setSession] = useState<1 | 2>(1)
 
   return (
@@ -570,7 +572,7 @@ function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: bool
         ))}
       </div>
 
-      <SessionForm key={session} sessionNum={session} onSave={onSave} saving={saving} />
+      <SessionForm key={session} sessionNum={session} onSave={onSave} saving={saving} onSaved={onSaved} />
     </div>
   )
 }
@@ -708,6 +710,7 @@ function AthleteContent() {
   const [tab, setTab] = useState<Tab>('morning')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savedType, setSavedType] = useState('')
   const [userName, setUserName] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [customQuestions, setCustomQuestions] = useState<CustomQuestions>({ morning:[], night:[] })
@@ -754,7 +757,7 @@ function AthleteContent() {
     if (!user) { router.replace('/auth'); return }
     await supabase.from('entries').insert({ user_id: user.id, type: tab, data })
     await loadEntries(user.id)
-    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 3000)
+    setSaving(false); setSaved(true); setSavedType(tab); setTimeout(() => setSaved(false), 3000)
   }, [tab, loadEntries])
 
   const handleTabChange = useCallback(async (newTab: Tab) => {
@@ -792,10 +795,10 @@ function AthleteContent() {
         ))}
       </div>
       <main style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'130px 20px 60px' }}>
-        {saved && <div style={{ background:'rgba(61,214,140,0.12)', border:'1px solid rgba(61,214,140,0.3)', borderRadius:12, padding:'12px 16px', fontSize:13, color:'#3dd68c', marginBottom:20, textAlign:'center', fontWeight:500 }}>✓ Entrée enregistrée avec succès !</div>}
-        {tab==='morning' && <MorningRoutine onSave={handleSave} saving={saving} customQuestions={customQuestions.morning} onSaveCustomQuestions={q => saveCustomQuestions('morning', q)} />}
-        {tab==='night'   && <NightRoutine   onSave={handleSave} saving={saving} customQuestions={customQuestions.night}   onSaveCustomQuestions={q => saveCustomQuestions('night', q)} />}
-        {tab==='journal' && <Journal onSave={handleSave} saving={saving} />}
+
+        {tab==='morning' && <MorningRoutine onSave={handleSave} saving={saving} onSaved={saved && savedType==='morning'} customQuestions={customQuestions.morning} onSaveCustomQuestions={q => saveCustomQuestions('morning', q)} />}
+        {tab==='night'   && <NightRoutine   onSave={handleSave} saving={saving} onSaved={saved && savedType==='night'}   customQuestions={customQuestions.night}   onSaveCustomQuestions={q => saveCustomQuestions('night', q)} />}
+        {tab==='journal' && <Journal onSave={handleSave} saving={saving} onSaved={saved && savedType==='journal'} />}
         {tab==='semaine' && userId && <WeekCalendar userId={userId} />}
         {tab==='stats'   && userId && <StatsView userId={userId} />}
         {tab==='profil'  && userId && <ProfilView userId={userId} name={userName} email={userEmail} athleteId={athleteId} totalEntries={allEntries.length} onLogout={() => { supabase.auth.signOut(); router.replace('/auth') }} />}
