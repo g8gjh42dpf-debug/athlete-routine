@@ -517,29 +517,60 @@ function MorningRoutine({ onSave, saving, customQuestions, onSaveCustomQuestions
   )
 }
 
-// ── Journal ───────────────────────────────────────────────────────────────────
-function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: boolean }) {
+// ── Session Form ─────────────────────────────────────────────────────────────
+function SessionForm({ sessionNum, onSave, saving }: {
+  sessionNum: 1 | 2; onSave: (data: any) => void; saving: boolean
+}) {
   const [rpe, setRpe] = useState(7)
   const [performance, setPerformance] = useState(7)
   const [feelings, setFeelings] = useState('')
   const [improvements, setImprovements] = useState('')
   const [notes, setNotes] = useState('')
+
+  const color = sessionNum === 1 ? '#3dd68c' : '#60a5fa'
+
   return (
     <div>
-      <div style={{ textAlign:'center', marginBottom:28 }}>
+      <Slider label="RPE (effort perçu)" value={rpe} onChange={setRpe} color='#f87171' emoji="🔥" />
+      <Slider label="Performance ressentie" value={performance} onChange={setPerformance} color={color} emoji="📈" />
+      <TextArea label="Ressenti pendant la séance" value={feelings} onChange={setFeelings} placeholder="Énergie, cardio, force, mental..." emoji="💭" />
+      <TextArea label="Points à améliorer" value={improvements} onChange={setImprovements} placeholder="Technique, stratégie, mental..." emoji="🔧" />
+      <TextArea label="Notes libres" value={notes} onChange={setNotes} placeholder="Observations, PR, contexte..." emoji="📝" />
+      <button onClick={() => onSave({ session: sessionNum, rpe, performance, feelings, improvements, notes })} disabled={saving}
+        style={{ width:'100%', padding:16, background:color, border:'none', borderRadius:14, color:'#0a0a0f', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', opacity:saving?0.7:1, transition:'opacity 0.2s' }}>
+        {saving ? 'ENREGISTREMENT...' : `ENREGISTRER SÉANCE ${sessionNum} ✓`}
+      </button>
+    </div>
+  )
+}
+
+// ── Journal ───────────────────────────────────────────────────────────────────
+function Journal({ onSave, saving }: { onSave: (data: any) => void; saving: boolean }) {
+  const [session, setSession] = useState<1 | 2>(1)
+
+  return (
+    <div>
+      <div style={{ textAlign:'center', marginBottom:24 }}>
         <div style={{ fontSize:48, marginBottom:8 }}>📓</div>
         <div style={{ fontFamily:"'Bebas Neue', sans-serif", fontSize:28, letterSpacing:3, color:'#3dd68c' }}>JOURNAL WOD</div>
         <div style={{ fontSize:12, color:'rgba(240,240,245,0.35)', marginTop:4 }}>Analyse ta séance</div>
       </div>
-      <Slider label="RPE (effort perçu)" value={rpe} onChange={setRpe} color='#f87171' emoji="🔥" />
-      <Slider label="Performance ressentie" value={performance} onChange={setPerformance} color='#3dd68c' emoji="📈" />
-      <TextArea label="Ressenti pendant la séance" value={feelings} onChange={setFeelings} placeholder="Énergie, cardio, force, mental..." emoji="💭" />
-      <TextArea label="Points à améliorer" value={improvements} onChange={setImprovements} placeholder="Technique, stratégie, mental..." emoji="🔧" />
-      <TextArea label="Notes libres" value={notes} onChange={setNotes} placeholder="Observations, PR, contexte..." emoji="📝" />
-      <button onClick={() => onSave({ rpe, performance, feelings, improvements, notes })} disabled={saving}
-        style={{ width:'100%', padding:16, background:'#3dd68c', border:'none', borderRadius:14, color:'#0a0a0f', fontFamily:"'Bebas Neue', sans-serif", fontSize:18, letterSpacing:2, cursor:'pointer', opacity:saving?0.7:1 }}>
-        {saving ? 'ENREGISTREMENT...' : 'ENREGISTRER MA SÉANCE ✓'}
-      </button>
+
+      {/* Session selector */}
+      <div style={{ display:'flex', background:'#1a1a26', borderRadius:14, padding:4, marginBottom:28, gap:4 }}>
+        {([1, 2] as const).map(s => (
+          <button key={s} onClick={() => setSession(s)} style={{
+            flex:1, padding:'12px 0', borderRadius:11, border:'none', cursor:'pointer',
+            background: session === s ? (s === 1 ? '#3dd68c' : '#60a5fa') : 'transparent',
+            color: session === s ? '#0a0a0f' : 'rgba(240,240,245,0.4)',
+            fontFamily:"'DM Sans', sans-serif", fontSize:14, fontWeight:600, transition:'all 0.2s',
+          }}>
+            {s === 1 ? '🏋️ Séance 1' : '⚡ Séance 2'}
+          </button>
+        ))}
+      </div>
+
+      <SessionForm key={session} sessionNum={session} onSave={onSave} saving={saving} />
     </div>
   )
 }
